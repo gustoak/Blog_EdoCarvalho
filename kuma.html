@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração do Uptime Kuma</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            padding: 0;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 5px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Como configurar o Uptime Kuma com Docker Compose</h1>
+    <p>
+        No cenário atual, onde os serviços digitais estão em constante evolução, garantir a confiabilidade e disponibilidade das suas soluções é essencial. Ferramentas de monitoramento são fundamentais para acompanhar o desempenho e a saúde de seus sistemas. O <strong>Uptime Kuma</strong> é uma solução de monitoramento auto-hospedada que fornece informações valiosas sobre o status de sites, serviços e servidores.
+    </p>
+    <p><strong>Nota:</strong> Este guia utiliza uma máquina EC2 da AWS como exemplo, mas o processo pode ser realizado localmente.</p>
+    
+    <h2>Pré-requisitos</h2>
+    <ul>
+        <li><strong>Instância EC2 da AWS:</strong> Configure uma instância EC2 na AWS e permita tráfego nas portas necessárias (ex.: 80 e 443).</li>
+        <li><strong>Nome de domínio:</strong> Tenha um domínio registrado para acessar sua instância do Uptime Kuma.</li>
+        <li><strong>Credenciais de acesso:</strong> Garanta acesso via SSH à instância EC2.</li>
+        <li><strong>Docker e Docker Compose instalados:</strong> Certifique-se de que ambas as ferramentas estejam instaladas.</li>
+    </ul>
+
+    <h2>1. Conectando-se à sua instância EC2</h2>
+    <p>Use o comando abaixo no terminal para se conectar via SSH:</p>
+    <pre><code>ssh -i /caminho/para/sua-chave.pem ec2-user@ip-da-sua-instancia-ec2</code></pre>
+    <p>Substitua <code>/caminho/para/sua-chave.pem</code> pelo caminho da sua chave privada e <code>ip-da-sua-instancia-ec2</code> pelo IP da instância.</p>
+
+    <h2>2. Atualize os pacotes do sistema</h2>
+    <p>Após a conexão, atualize os pacotes do sistema:</p>
+    <pre><code>sudo yum update -y</code></pre>
+
+    <h2>3. Criando o arquivo Docker Compose</h2>
+    <p>Crie um diretório para o projeto e navegue até ele:</p>
+    <pre><code>mkdir uptime-kuma-docker
+cd uptime-kuma-docker</code></pre>
+    <p>Crie um arquivo <code>docker-compose.yml</code> com o conteúdo abaixo:</p>
+    <pre><code>version: '3'
+
+services:
+  uptime-kuma:
+    image: elestio/uptime-kuma
+    ports:
+      - "80:3001"
+    environment:
+      - DB_TYPE=sqlite
+      - DB_STORAGE=/app/data/uptime-kuma.db
+      - SOFTWARE_VERSION_TAG=latest
+      - URL=https://seu-dominio.com
+    volumes:
+      - uptime-kuma-data:/app/data
+    restart: always
+    healthcheck:
+      disable: true
+
+volumes:
+  uptime-kuma-data:</code></pre>
+    <p>Substitua <code>seu-dominio.com</code> pelo seu domínio real.</p>
+
+    <h2>4. Iniciando o Uptime Kuma</h2>
+    <p>No diretório onde está o <code>docker-compose.yml</code>, execute:</p>
+    <pre><code>docker-compose up -d</code></pre>
+    <p>Isso criará o contêiner e o executará em segundo plano.</p>
+
+    <h2>5. Acessando o Uptime Kuma</h2>
+    <p>Acesse no navegador:</p>
+    <ul>
+        <li><code>http://&lt;seu-ip&gt;</code></li>
+        <li><code>http://&lt;seu-dominio.com&gt;</code></li>
+    </ul>
+
+    <h2>6. Configurações adicionais</h2>
+    <h3>Persistência de dados</h3>
+    <p>Os dados são armazenados fora do contêiner graças à configuração de volumes, garantindo a integridade após reinicializações.</p>
+
+    <h3>Ativando autenticação 2FA</h3>
+    <ol>
+        <li>Clique no seu avatar no canto superior direito.</li>
+        <li>Vá para <strong>Configurações</strong> &gt; <strong>2FA Settings</strong>.</li>
+        <li>Escaneie o QR Code e insira os códigos no aplicativo autenticador.</li>
+    </ol>
+
+    <h2>7. Configurando monitoramento</h2>
+    <h3>Monitoramento de Ping</h3>
+    <ol>
+        <li>Clique em <strong>+Add New Monitor</strong>.</li>
+        <li>Escolha o tipo <strong>Ping</strong> e configure os campos necessários.</li>
+    </ol>
+
+    <h3>Monitoramento de MongoDB</h3>
+    <ol>
+        <li>Clique em <strong>+Add New Monitor</strong>.</li>
+        <li>Escolha o tipo <strong>MongoDB</strong> e insira a string de conexão e configurações adicionais.</li>
+    </ol>
+
+    <h2>Parabéns!</h2>
+    <p>Você configurou o Uptime Kuma com Docker Compose com persistência de dados e monitoramento personalizado. Caso tenha dúvidas ou sugestões, sinta-se à vontade para compartilhar!</p>
+</body>
+</html>
